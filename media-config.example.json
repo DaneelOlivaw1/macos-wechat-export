@@ -1,0 +1,11 @@
+{
+  "db_root": "/ABSOLUTE/PATH/TO/db_storage",
+  "key_file": "keys.json",
+  "chat_id": "REPLACE_WITH_CONFIRMED_CHAT_USERNAME",
+  "self_id": "REPLACE_WITH_OWN_SENDER_ID",
+  "expected_name": "REPLACE_WITH_CONFIRMED_CONTACT_OR_GROUP_NAME",
+  "state_file": "group-state.json",
+  "media_python": "../.venv-media/bin/python",
+  "cache_dir": "media-cache",
+  "asr_model": "models/whisper-large-v3-turbo"
+}

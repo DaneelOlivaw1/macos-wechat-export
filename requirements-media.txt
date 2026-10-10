@@ -1,0 +1,7 @@
+# Tested direct dependencies: Apple Silicon / Python 3.12.
+# Install only for optional local media handling. Transitive versions are not locked.
+mlx-whisper==0.4.3
+pilk==0.2.4
+Pillow==12.3.0
+cryptography==50.0.1
+zstandard==0.25.0
