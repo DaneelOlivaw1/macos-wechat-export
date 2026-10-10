@@ -7,6 +7,7 @@ from pathlib import Path
 import platform
 import subprocess as sp
 import sys
+import tempfile
 import time
 
 
@@ -19,6 +20,17 @@ def run(args):
     if result.returncode:
         raise RuntimeError('command_failed: ' + Path(args[0]).name)
     return result.stdout or result.stderr
+
+
+def clear_finder_info(copy):
+    copy = copy.resolve(strict=True)
+    # Recursive deletion also fails on readonly files without this attribute.
+    for line in run(['/usr/bin/xattr', '-r', '-s', str(copy)]).splitlines():
+        path, _, attribute = line.rpartition(': ')
+        if attribute == 'com.apple.FinderInfo':
+            if not Path(path).is_relative_to(copy):
+                raise RuntimeError('FinderInfo path outside temporary copy')
+            run(['/usr/bin/xattr', '-s', '-d', attribute, path])
 
 
 def main():
@@ -62,7 +74,13 @@ def main():
     run(['codesign', '--verify', '--deep', '--strict', str(app)])
     lldb_python = run(['/usr/bin/lldb', '-P']).strip()
     env = dict(os.environ, PYTHONPATH=lldb_python)
+    # Keep the debug bundle away from background FinderInfo rewrites in Documents.
+    copy_dir = Path(tempfile.mkdtemp(prefix='wechat-debug-copy-')).resolve()
+    shadow = copy_dir/'WeChat-trial.app'
+    disabled = copy_dir/'WeChat-trial.disabled'
+    emit('temporary_copy_location', path=str(shadow))
     run(['/usr/bin/ditto', str(app), str(shadow)])
+    clear_finder_info(shadow)
     run(['codesign', '--force', '--deep', '--sign', '-', str(shadow)])
     run(['codesign', '--verify', '--deep', '--strict', str(shadow)])
     emit('copy_prepared', instruction='In the temporary WeChat window, choose Enter Weixin and finish phone login if requested.')
